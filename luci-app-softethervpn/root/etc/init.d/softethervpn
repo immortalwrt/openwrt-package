@@ -19,6 +19,9 @@ add_rule() {
 	iptables -A SOFTETHER_VPN-SERVER -p tcp --dport 5555 -j ACCEPT
 	iptables -A SOFTETHER_VPN-SERVER -p tcp --dport 8888 -j ACCEPT
 	iptables -A SOFTETHER_VPN-SERVER -p tcp --dport 992 -j ACCEPT
+	iptables -t mangle -I OUTPUT -p udp -m multiport --sports 500,1701,4500 -m comment --comment "L2TP/IPSec" -j RETURN
+	iptables -t mangle -I OUTPUT -p udp --sport $openvpnport -m comment --comment "OpenVPN" -j RETURN
+	iptables -t mangle -I OUTPUT -p tcp --sport $openvpnport -m comment --comment "OpenVPN" -j RETURN
 }
 
 del_rule() {
@@ -38,6 +41,10 @@ del_rule() {
 
 	iptables -F SOFTETHER_VPN-SERVER 2>/dev/null
 	iptables -X SOFTETHER_VPN-SERVER 2>/dev/null
+	
+	iptables -t mangle -D OUTPUT -p udp -m multiport --sports 500,1701,4500 -m comment --comment "L2TP/IPSec" -j RETURN 2>/dev/null
+	iptables -t mangle -D OUTPUT -p udp --sport $openvpnport -m comment --comment "OpenVPN" -j RETURN 2>/dev/null
+	iptables -t mangle -D OUTPUT -p tcp --sport $openvpnport -m comment --comment "OpenVPN" -j RETURN 2>/dev/null
 }
 
 gen_include() {
